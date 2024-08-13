@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_async_session
 from app.QRKot.crud import charity_project_crud
 from app.QRKot.serializers import CharityProjectDB, CharityProjectCreate, CharityProjectUpdate
+from app.core.user import current_superuser
 
 router = APIRouter()
 
@@ -21,11 +22,12 @@ async def get_all_charity_projects(
 @router.post(
     '/',
     response_model=CharityProjectDB,
+    dependencies=[Depends(current_superuser)],
 )
 async def create_charity_project(
         charity_project: CharityProjectCreate,
         session: AsyncSession = Depends(get_async_session),
-):  # todo superuser only
+):
     """ superuser access only """
     return await charity_project_crud.create(
         charity_project,
@@ -36,12 +38,13 @@ async def create_charity_project(
 @router.patch(
     '/{project_id}',
     response_model=CharityProjectDB,
+    dependencies=[Depends(current_superuser)],
 )
 async def create_charity_project(
         project_id: int,
         charity_project: CharityProjectUpdate,
         session: AsyncSession = Depends(get_async_session),
-):  # todo superuser only
+):
     """ superuser access only """
     return await charity_project_crud.update(
         project_id,

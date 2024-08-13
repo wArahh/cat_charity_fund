@@ -6,7 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.QRKot.models import CharityProject, Donation
-from app.QRKot.constaints import GET_OBJECT_ERROR, DB_CHANGE_ERROR, NOT_IN_DB
+from app.constaints import GET_OBJECT_ERROR, DB_CHANGE_ERROR, NOT_IN_DB
+from app.users.models import User
 
 
 async def db_change(
@@ -70,7 +71,7 @@ class CrudBase:
             self,
             obj,
             session: AsyncSession,
-            user: Optional[str] = None,  # todo
+            user: Optional[User] = None,
     ):
         obj_data = obj.dict()
         if user is not None:

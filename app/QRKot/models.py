@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, CheckConstraint, Text, Integer, Boolean, DateTime
+from sqlalchemy import Column, String, CheckConstraint, Text, Integer, Boolean, DateTime, ForeignKey
 from datetime import datetime
 
 from app.core.db import Base
@@ -41,7 +41,10 @@ class CharityProject(Funding):
 
 
 class Donation(Funding):
-    # todo user_id
+    user_id = Column(
+        Integer,
+        ForeignKey('user.id', name='fk_donation_user_id_user'),
+    )
     comment = Column(
         Text
     )
