@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
+from app.QRKot.models import Donation
 from app.QRKot.crud import charity_project_crud
 from app.QRKot.serializers import CharityProjectDB, CharityProjectCreate, CharityProjectUpdate
 from app.core.user import current_superuser
@@ -29,9 +30,12 @@ async def create_charity_project(
         session: AsyncSession = Depends(get_async_session),
 ):
     """ superuser access only """
-    return await charity_project_crud.create(
+    project = await charity_project_crud.create(
         charity_project,
         session
+    )
+    return await charity_project_crud.donation_processing(
+        project, Donation, session
     )
 
 
