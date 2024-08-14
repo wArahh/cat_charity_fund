@@ -34,6 +34,7 @@ uvicorn app.main:app --reload
 /docs
 ```
 или тут
+
 [wArah cat_charity_fund Documentation](https://github.com/wArahh/cat_charity_fund/blob/master/openapi.json).
 
 
