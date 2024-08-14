@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.QRKot.crud import charity_project_crud
+from app.crud import charity_project_crud
 from app.constaints import NAME_ALREADY_IN_USE
 
 

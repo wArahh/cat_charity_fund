@@ -6,39 +6,10 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.QRKot.models import CharityProject, Donation
-from app.constaints import GET_OBJECT_ERROR, DB_CHANGE_ERROR, NOT_IN_DB, CANNOT_DELETE_INVESTED_PROJECT, CANT_SET_LESS_THAN_ALREADY_DONATED
-from app.users.models import User
-
-
-async def db_change(
-        obj,
-        session: AsyncSession,
-        model,
-        delete=False,
-        add_list=None
-):
-    try:
-        if delete:
-            await session.delete(obj)
-            await session.commit()
-        else:
-            if add_list:
-                session.add_all(add_list)
-            else:
-                session.add(obj)
-            await session.commit()
-            await session.refresh(obj)
-    except Exception as error:
-        await session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=DB_CHANGE_ERROR.format(
-                model=model.__name__.lower(),
-                error=error
-            )
-        )
-    return obj
+from app.models import Donation, CharityProject
+from app.constaints import GET_OBJECT_ERROR, NOT_IN_DB, CANNOT_DELETE_INVESTED_PROJECT, CANT_SET_LESS_THAN_ALREADY_DONATED
+from app.models.user import User
+from app.utils import db_change
 
 
 class CrudBase:
@@ -106,6 +77,11 @@ class CrudBase:
             session: AsyncSession,
     ):
         db_obj = await self.get(db_obj_id, session)
+        if db_obj.fully_invested == 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=CANNOT_DELETE_INVESTED_PROJECT
+            )
         if db_obj.invested_amount > obj.full_amount:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -189,7 +165,6 @@ class CrudBase:
 
 
 class CrudCharityProject(CrudBase):
-
     @staticmethod
     async def get_charity_project_by_name(
             charity_name: str,

@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
-from app.QRKot.models import Donation
-from app.QRKot.crud import charity_project_crud
-from app.QRKot.serializers import CharityProjectDB, CharityProjectCreate, CharityProjectUpdate
+from app.models.donation import Donation
+from app.crud import charity_project_crud
+from app.schemas.charity_project import CharityProjectDB, CharityProjectCreate, CharityProjectUpdate
 from app.core.user import current_superuser
 from app.api.validatiors import check_name_duplicate
 

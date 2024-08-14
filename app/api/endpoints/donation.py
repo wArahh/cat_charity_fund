@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
-from app.QRKot.models import CharityProject
-from app.QRKot.crud import donation_crud
-from app.QRKot.serializers import CreateDonation, CertainDonationDB, DonationDB
+from app.models import CharityProject
+from app.crud import donation_crud
+from app.schemas.donation import CreateDonation, CertainDonationDB, DonationDB
 from app.core.user import current_user, current_superuser
-from app.users.models import User
+from app.models.user import User
 
 router = APIRouter()
 

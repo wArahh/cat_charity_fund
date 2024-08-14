@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, CheckConstraint, Text, Integer, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, CheckConstraint, Integer, Boolean, DateTime
 from datetime import datetime
 
 from app.core.db import Base
@@ -25,26 +25,4 @@ class Funding(Base):
     )
     close_date = Column(
         DateTime,
-    )
-
-
-class CharityProject(Funding):
-    name = Column(
-        String(100),
-        unique=True,
-        nullable=False,
-    )
-    description = Column(
-        Text,
-        nullable=False,
-    )
-
-
-class Donation(Funding):
-    user_id = Column(
-        Integer,
-        ForeignKey('user.id', name='fk_donation_user_id_user'),
-    )
-    comment = Column(
-        Text
     )

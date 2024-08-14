@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from alembic import context
 
 from app.core.db import Base
-from app.QRKot.models import CharityProject, Donation # noqa
-from app.users.models import User # noqa
+from app.models.donation import CharityProject, Donation # noqa
+from app.models.user import User # noqa
 
 load_dotenv('.env')
 

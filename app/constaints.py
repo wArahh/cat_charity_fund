@@ -12,6 +12,8 @@ CANNOT_DELETE_INVESTED_PROJECT = (
 CANT_SET_LESS_THAN_ALREADY_DONATED = (
     'Нельзя изменить поле full_amount на значение меньше уже полученного'
 )
+INCORRECT_REGEX = 'Пароль содержит некорректные символы'
+ACCEPTED_REGEX = r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$'
 BEARER_TOKEN_URL = 'auth/jwt/login'
 JWT_LIFETIME = 3600
 AUTHENTICATION_BACKEND_NAME = 'jwt'

@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.constaints import BEARER_TOKEN_URL, JWT_LIFETIME, AUTHENTICATION_BACKEND_NAME
 from app.core.config import settings
 from app.core.db import get_async_session
-from app.users.models import User
+from app.models.user import User
 
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
