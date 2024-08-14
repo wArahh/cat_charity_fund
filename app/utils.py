@@ -1,5 +1,6 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.constaints import DB_CHANGE_ERROR
 
 

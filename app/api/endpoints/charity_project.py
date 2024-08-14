@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import get_async_session
-from app.models.donation import Donation
-from app.crud import charity_project_crud
-from app.schemas.charity_project import CharityProjectDB, CharityProjectCreate, CharityProjectUpdate
-from app.core.user import current_superuser
 from app.api.validatiors import check_name_duplicate
+from app.core.db import get_async_session
+from app.core.user import current_superuser
+from app.crud import charity_project_crud
+from app.models.donation import Donation
+from app.schemas.charity_project import (
+    CharityProjectCreate, CharityProjectDB, CharityProjectUpdate
+)
 
 router = APIRouter()
 
@@ -17,7 +19,7 @@ router = APIRouter()
 )
 async def get_all_charity_projects(
         session: AsyncSession = Depends(get_async_session),
-):
+) -> list[CharityProjectDB]:
     return await charity_project_crud.get_all(session)
 
 
@@ -29,15 +31,16 @@ async def get_all_charity_projects(
 async def create_charity_project(
         charity_project: CharityProjectCreate,
         session: AsyncSession = Depends(get_async_session),
-):
+) -> CharityProjectDB:
     """ superuser access only """
     await check_name_duplicate(charity_project.name, session)
-    project = await charity_project_crud.create(
-        charity_project,
-        session
-    )
     return await charity_project_crud.donation_processing(
-        project, Donation, session
+        await charity_project_crud.create(
+            charity_project,
+            session
+        ),
+        Donation,
+        session
     )
 
 
@@ -50,7 +53,7 @@ async def create_charity_project(
         project_id: int,
         charity_project: CharityProjectUpdate,
         session: AsyncSession = Depends(get_async_session),
-):
+) -> CharityProjectDB:
     """ superuser access only """
     await check_name_duplicate(charity_project.name, session)
     return await charity_project_crud.update(
@@ -68,7 +71,7 @@ async def create_charity_project(
 async def delete_charity_project(
         project_id: int,
         session: AsyncSession = Depends(get_async_session),
-):
+) -> CharityProjectDB:
     """ superuser access only """
     return await charity_project_crud.delete(
         project_id,

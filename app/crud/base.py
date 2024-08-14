@@ -6,8 +6,10 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Donation, CharityProject
-from app.constaints import GET_OBJECT_ERROR, NOT_IN_DB, CANNOT_DELETE_INVESTED_PROJECT, CANT_SET_LESS_THAN_ALREADY_DONATED
+from app.constaints import (
+    CANNOT_DELETE_INVESTED_PROJECT, CANNOT_UPDATE_FULLY_INVESTED_PROJECT,
+    CANT_SET_LESS_THAN_ALREADY_DONATED, GET_OBJECT_ERROR, NOT_IN_DB
+)
 from app.models.user import User
 from app.utils import db_change
 
@@ -80,16 +82,15 @@ class CrudBase:
         if db_obj.fully_invested == 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=CANNOT_DELETE_INVESTED_PROJECT
+                detail=CANNOT_UPDATE_FULLY_INVESTED_PROJECT
             )
         if db_obj.invested_amount > obj.full_amount:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=CANT_SET_LESS_THAN_ALREADY_DONATED
             )
-        obj_data = jsonable_encoder(db_obj)
         update_data = obj.dict(exclude_unset=True)
-        for field in obj_data:
+        for field in jsonable_encoder(db_obj):
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
         return await db_change(db_obj, session, self.model)
@@ -128,10 +129,10 @@ class CrudBase:
             )
         investments = available_investments.scalars().all()
         objects_to_add = []
-        for db_query in investments:
-            obj, db_query = await self.money_distribution(obj, db_query)
+        for invest in investments:
+            obj, invest = await self.money_distribution(obj, invest)
             objects_to_add.append(obj)
-            objects_to_add.append(db_query)
+            objects_to_add.append(invest)
         return await db_change(
             obj, session, self.model, add_list=objects_to_add
         )
@@ -139,20 +140,20 @@ class CrudBase:
     async def money_distribution(
             self,
             obj,
-            db_obj
+            invest
     ):
         object_remain = obj.full_amount - obj.invested_amount
-        db_obj_remain = db_obj.full_amount - db_obj.invested_amount
-        if object_remain > db_obj_remain:
-            obj.invested_amount += db_obj_remain
-            db_obj = await self.close_query(db_obj)
-        elif object_remain == db_obj_remain:
+        invest_remain = invest.full_amount - invest.invested_amount
+        if object_remain > invest_remain:
+            obj.invested_amount += invest_remain
+            invest = await self.close_query(invest)
+        elif object_remain == invest_remain:
             obj = await self.close_query(obj)
-            db_obj = await self.close_query(db_obj)
+            invest = await self.close_query(invest)
         else:
-            db_obj.invested_amount += object_remain
+            invest.invested_amount += object_remain
             obj = await self.close_query(obj)
-        return obj, db_obj
+        return obj, invest
 
     @staticmethod
     async def close_query(
@@ -162,43 +163,3 @@ class CrudBase:
         db_obj.fully_invested = True
         db_obj.close_date = datetime.utcnow()
         return db_obj
-
-
-class CrudCharityProject(CrudBase):
-    @staticmethod
-    async def get_charity_project_by_name(
-            charity_name: str,
-            session: AsyncSession,
-    ):
-        try:
-            get_charity_project_name = await session.execute(
-                select(CharityProject).where(
-                    CharityProject.name == charity_name
-                )
-            )
-        except Exception as error:
-            raise HTTPException(
-                GET_OBJECT_ERROR.format(
-                    model=CharityProject.__name__.lower(),
-                    error=error
-                )
-            )
-        return get_charity_project_name.scalars().first()
-
-
-class CrudDonation(CrudBase):
-    @staticmethod
-    async def get_user_donations(
-            user_id: int,
-            session: AsyncSession,
-    ):
-        get_user_donations = await session.execute(
-            select(Donation).where(
-                Donation.user_id == user_id
-            )
-        )
-        return get_user_donations.scalars().all()
-
-
-charity_project_crud = CrudCharityProject(CharityProject)
-donation_crud = CrudDonation(Donation)

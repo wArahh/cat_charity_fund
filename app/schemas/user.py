@@ -1,8 +1,10 @@
-from fastapi_users import schemas
-from fastapi import status, HTTPException
-from pydantic import validator
 import re
-from app.constaints import INCORRECT_REGEX, ACCEPTED_REGEX
+
+from fastapi import HTTPException, status
+from fastapi_users import schemas
+from pydantic import validator
+
+from app.constaints import ACCEPTED_REGEX, INCORRECT_REGEX
 
 
 class UserRead(schemas.BaseUser[int]):

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, Extra
+from pydantic import BaseModel, Extra, Field
 
 
 class CharityProjectBase(BaseModel):
@@ -18,9 +18,9 @@ class CharityProjectCreate(CharityProjectBase):
 
 
 class CharityProjectUpdate(CharityProjectBase):
-    name:  Optional[str] = Field(min_length=1, max_length=100)
+    name: Optional[str] = Field(min_length=1, max_length=100)
     description: Optional[str] = Field(min_length=1)
-    full_amount: Optional[int] = 1
+    full_amount: Optional[int] = Field(1, ge=1)
 
 
 class CharityProjectDB(CharityProjectBase):
