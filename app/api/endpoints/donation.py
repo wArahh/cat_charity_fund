@@ -19,6 +19,7 @@ router = APIRouter()
 async def get_all_donations(
         session: AsyncSession = Depends(get_async_session),
 ) -> list[DonationDB]:
+    """ superuser access only """
     return await donation_crud.get_all(session)
 
 

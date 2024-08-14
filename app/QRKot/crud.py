@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.QRKot.models import CharityProject, Donation
-from app.constaints import GET_OBJECT_ERROR, DB_CHANGE_ERROR, NOT_IN_DB
+from app.constaints import GET_OBJECT_ERROR, DB_CHANGE_ERROR, NOT_IN_DB, CANNOT_DELETE_INVESTED_PROJECT, CANT_SET_LESS_THAN_ALREADY_DONATED
 from app.users.models import User
 
 
@@ -106,6 +106,11 @@ class CrudBase:
             session: AsyncSession,
     ):
         db_obj = await self.get(db_obj_id, session)
+        if db_obj.invested_amount > obj.full_amount:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=CANT_SET_LESS_THAN_ALREADY_DONATED
+            )
         obj_data = jsonable_encoder(db_obj)
         update_data = obj.dict(exclude_unset=True)
         for field in obj_data:
@@ -119,6 +124,11 @@ class CrudBase:
             session: AsyncSession,
     ):
         db_obj = await self.get(db_obj_id, session)
+        if db_obj.invested_amount > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=CANNOT_DELETE_INVESTED_PROJECT
+            )
         return await db_change(db_obj, session, self.model, delete=True)
 
     async def donation_processing(
@@ -179,7 +189,26 @@ class CrudBase:
 
 
 class CrudCharityProject(CrudBase):
-    pass
+
+    @staticmethod
+    async def get_charity_project_by_name(
+            charity_name: str,
+            session: AsyncSession,
+    ):
+        try:
+            get_charity_project_name = await session.execute(
+                select(CharityProject).where(
+                    CharityProject.name == charity_name
+                )
+            )
+        except Exception as error:
+            raise HTTPException(
+                GET_OBJECT_ERROR.format(
+                    model=CharityProject.__name__.lower(),
+                    error=error
+                )
+            )
+        return get_charity_project_name.scalars().first()
 
 
 class CrudDonation(CrudBase):
