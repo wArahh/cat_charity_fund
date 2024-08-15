@@ -13,7 +13,9 @@ class Funding(Base):
     )
     invested_amount = Column(
         Integer,
-        CheckConstraint('invested_amount >= 0'),
+        CheckConstraint(
+            'invested_amount >= 0 and invested_amount <= full_amount'
+        ),
         default=0,
     )
     fully_invested = Column(
@@ -27,3 +29,10 @@ class Funding(Base):
     close_date = Column(
         DateTime,
     )
+
+    def __repr__(self):
+        return (
+            f'<Funding need = {self.full_amount} '
+            f'already_donated = {self.invested_amount}>'
+            f'create_date = {self.create_date}>'
+        )

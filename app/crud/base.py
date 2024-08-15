@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 from fastapi import HTTPException, status
@@ -7,8 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.constaints import (
-    CANNOT_DELETE_INVESTED_PROJECT, CANNOT_UPDATE_FULLY_INVESTED_PROJECT,
-    CANT_SET_LESS_THAN_ALREADY_DONATED, GET_OBJECT_ERROR, NOT_IN_DB
+    CANNOT_DELETE_INVESTED_PROJECT,
+    CANNOT_UPDATE_FULLY_INVESTED_PROJECT,
+    CANT_SET_LESS_THAN_ALREADY_DONATED,
+    NOT_IN_DB
 )
 from app.models.user import User
 from app.utils import db_change
@@ -23,19 +24,11 @@ class CrudBase:
             obj_id: int,
             session: AsyncSession,
     ):
-        try:
-            get_object = await session.execute(
-                select(self.model).where(
-                    self.model.id == obj_id
-                )
+        get_object = await session.execute(
+            select(self.model).where(
+                self.model.id == obj_id
             )
-        except Exception as error:
-            raise HTTPException(
-                GET_OBJECT_ERROR.format(
-                    model=self.model.__name__.lower(),
-                    error=error
-                )
-            )
+        )
         obj = get_object.scalars().first()
         if obj is None:
             raise HTTPException(
@@ -48,17 +41,9 @@ class CrudBase:
             self,
             session: AsyncSession,
     ):
-        try:
-            get_all = await session.execute(
-                select(self.model)
-            )
-        except Exception as error:
-            raise HTTPException(
-                GET_OBJECT_ERROR.format(
-                    model=self.model.__name__.lower(),
-                    error=error
-                )
-            )
+        get_all = await session.execute(
+            select(self.model)
+        )
         return get_all.scalars().all()
 
     async def create(
@@ -108,58 +93,14 @@ class CrudBase:
             )
         return await db_change(db_obj, session, self.model, delete=True)
 
-    async def donation_processing(
-            self,
-            obj,
-            db_model,
-            session: AsyncSession
-    ):
-        try:
-            available_investments = await session.execute(
-                select(db_model).where(
-                    db_model.fully_invested == 0
-                ).order_by(db_model.create_date)
-            )
-        except Exception as error:
-            raise HTTPException(
-                GET_OBJECT_ERROR.format(
-                    model=self.model.__name__.lower(),
-                    error=error
-                )
-            )
-        investments = available_investments.scalars().all()
-        objects_to_add = []
-        for invest in investments:
-            obj, invest = await self.money_distribution(obj, invest)
-            objects_to_add.append(obj)
-            objects_to_add.append(invest)
-        return await db_change(
-            obj, session, self.model, add_list=objects_to_add
-        )
-
-    async def money_distribution(
-            self,
-            obj,
-            invest
-    ):
-        object_remain = obj.full_amount - obj.invested_amount
-        invest_remain = invest.full_amount - invest.invested_amount
-        if object_remain > invest_remain:
-            obj.invested_amount += invest_remain
-            invest = await self.close_query(invest)
-        elif object_remain == invest_remain:
-            obj = await self.close_query(obj)
-            invest = await self.close_query(invest)
-        else:
-            invest.invested_amount += object_remain
-            obj = await self.close_query(obj)
-        return obj, invest
-
     @staticmethod
-    async def close_query(
-            db_obj
+    async def get_available_investments(
+            db_model,
+            session: AsyncSession,
     ):
-        db_obj.invested_amount = db_obj.full_amount
-        db_obj.fully_invested = True
-        db_obj.close_date = datetime.utcnow()
-        return db_obj
+        available_investments = await session.execute(
+            select(db_model).where(
+                db_model.fully_invested == 0
+            ).order_by(db_model.create_date)
+        )
+        return available_investments.scalars().all()

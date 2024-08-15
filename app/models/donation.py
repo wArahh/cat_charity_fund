@@ -11,3 +11,10 @@ class Donation(Funding):
     comment = Column(
         Text
     )
+
+    def __repr__(self):
+        return (
+            f"<CharityProject(user_id={self.user_id}, "
+            f"comment={self.comment[:20]}), "
+            f"{super().__repr__()}>"
+        )

@@ -30,19 +30,18 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 ### Документацию вы можете посмотреть по адресу
-```
-/docs
-```
+[Swagger](http://127.0.0.1:8000/docs)
+
 или тут
 
-[wArah cat_charity_fund Documentation](https://github.com/wArahh/cat_charity_fund/blob/master/openapi.json).
+[ReDoc](http://127.0.0.1:8000/redoc)
 
 
 
 ## Стек
-- Python 3.9
-- FastApi 0.78.0
-- fastapi-users[sqlalchemy] 10.0.4
-- SQLAlchemy 1.4.36
+- Python
+- FastApi
+- fastapi-users[sqlalchemy] 
+- SQLAlchemy
 ## Автор
 - [Макаренко Никита](https://github.com/wArahh)

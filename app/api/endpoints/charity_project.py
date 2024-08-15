@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.validatiors import check_name_duplicate
+from app.business_logic import donation_processing
 from app.core.db import get_async_session
 from app.core.user import current_superuser
 from app.crud import charity_project_crud
@@ -34,7 +35,7 @@ async def create_charity_project(
 ) -> CharityProjectDB:
     """ superuser access only """
     await check_name_duplicate(charity_project.name, session)
-    return await charity_project_crud.donation_processing(
+    return await donation_processing(
         await charity_project_crud.create(
             charity_project,
             session

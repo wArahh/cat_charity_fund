@@ -5,12 +5,13 @@ from pydantic import BaseModel, Extra, Field
 
 
 class CharityProjectBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=100)
-    description: str = Field(None, min_length=1)
+    name: str = Field(..., max_length=100)
+    description: str = Field(None)
     full_amount: int = Field(ge=1)
 
     class Config:
         extra = Extra.forbid
+        min_anystr_length = 1
 
 
 class CharityProjectCreate(CharityProjectBase):
@@ -18,8 +19,8 @@ class CharityProjectCreate(CharityProjectBase):
 
 
 class CharityProjectUpdate(CharityProjectBase):
-    name: Optional[str] = Field(min_length=1, max_length=100)
-    description: Optional[str] = Field(min_length=1)
+    name: Optional[str] = Field(max_length=100)
+    description: Optional[str] = Field()
     full_amount: Optional[int] = Field(1, ge=1)
 
 
