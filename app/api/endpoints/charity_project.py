@@ -35,13 +35,18 @@ async def create_charity_project(
 ) -> CharityProjectDB:
     """ superuser access only """
     await check_name_duplicate(charity_project.name, session)
-    return await donation_processing(
-        await charity_project_crud.create(
-            charity_project,
-            session
-        ),
-        Donation,
-        session
+    target = await charity_project_crud.create(
+        charity_project, session
+    )
+    return await charity_project_crud.db_change(
+        target,
+        session,
+        add_list=donation_processing(
+            target,
+            await charity_project_crud.get_available_investments(
+                Donation, session
+            )
+        )
     )
 
 

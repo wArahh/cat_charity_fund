@@ -1,24 +1,26 @@
 from datetime import datetime
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.crud.base import CrudBase
-from app.utils import db_change
+from app.schemas.charity_project import CharityProjectDB
+from app.schemas.donation import CertainDonationDB
 
 
-async def donation_processing(target, db_obj, session: AsyncSession):
-    sources = await CrudBase.get_available_investments(db_obj, session)
+def donation_processing(
+        target: [CertainDonationDB, CharityProjectDB],
+        sources: [list[CertainDonationDB], list[CharityProjectDB]]):
     objects_to_add = []
+    if any(isinstance(source, list) for source in sources):
+        sources = [item for sublist in sources for item in sublist]
     for source in sources:
         transfer_amount = min(
             target.full_amount - target.invested_amount,
             source.full_amount - source.invested_amount
         )
-        target.invested_amount += transfer_amount
-        source.invested_amount += transfer_amount
         for item in (target, source):
+            if source.fully_invested:
+                break
+            item.invested_amount += transfer_amount
             if item.invested_amount == item.full_amount:
                 item.fully_invested = True
                 item.close_date = datetime.utcnow()
         objects_to_add.extend([target, source])
-    return await db_change(target, session, sources, add_list=objects_to_add)
+    return objects_to_add

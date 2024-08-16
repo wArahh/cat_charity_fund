@@ -44,10 +44,16 @@ async def create_donation(
         user: User = Depends(current_user),
         session: AsyncSession = Depends(get_async_session),
 ) -> CertainDonationDB:
-    return await donation_processing(
-        await donation_crud.create(
-            donation, session, user
-        ),
-        CharityProject,
-        session
+    target = await donation_crud.create(
+        donation, session, user
+    )
+    return await donation_crud.db_change(
+        target,
+        session,
+        add_list=donation_processing(
+            target,
+            await donation_crud.get_available_investments(
+                CharityProject, session
+            )
+        )
     )
