@@ -7,7 +7,6 @@ from app.constaints import DB_CHANGE_ERROR
 async def db_change(
         obj,
         session: AsyncSession,
-        model,
         delete=False,
         add_list=None
 ):
@@ -22,13 +21,9 @@ async def db_change(
                 session.add(obj)
             await session.commit()
             await session.refresh(obj)
-    except Exception as error:
-        await session.rollback()
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=DB_CHANGE_ERROR.format(
-                model=model.__name__.lower(),
-                error=error
-            )
+            detail=DB_CHANGE_ERROR
         )
     return obj

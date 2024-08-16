@@ -16,7 +16,7 @@ class CharityProject(Funding):
 
     def __repr__(self):
         return (
-            f"<CharityProject(name={self.name}, "
-            f"description={self.description[:20]}), "
-            f"{super().__repr__()}>"
+            f'<CharityProject({self.name=}, '
+            f'{self.description[:20]=}), '
+            f'{super().__repr__()}>'
         )

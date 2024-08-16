@@ -14,7 +14,7 @@ class Funding(Base):
     invested_amount = Column(
         Integer,
         CheckConstraint(
-            'invested_amount >= 0 and invested_amount <= full_amount'
+            '0 <= invested_amount <= full_amount'
         ),
         default=0,
     )
@@ -34,5 +34,6 @@ class Funding(Base):
         return (
             f'<Funding need = {self.full_amount} '
             f'already_donated = {self.invested_amount}>'
-            f'create_date = {self.create_date}>'
+            f'{self.create_date=}'
+            f'{self.close_date=}>'
         )

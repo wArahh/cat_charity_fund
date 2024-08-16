@@ -9,10 +9,9 @@ from app.constaints import (
     CANNOT_DELETE_INVESTED_PROJECT,
     CANNOT_UPDATE_FULLY_INVESTED_PROJECT,
     CANT_SET_LESS_THAN_ALREADY_DONATED,
-    NOT_IN_DB
+    NOT_IN_DB, DB_CHANGE_ERROR
 )
 from app.models.user import User
-from app.utils import db_change
 
 
 class CrudBase:
@@ -55,7 +54,7 @@ class CrudBase:
         obj_data = obj.dict()
         if user is not None:
             obj_data['user_id'] = user.id
-        return await db_change(self.model(**obj_data), session, self.model)
+        return await self.db_change(self.model(**obj_data), session)
 
     async def update(
             self,
@@ -78,7 +77,7 @@ class CrudBase:
         for field in jsonable_encoder(db_obj):
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
-        return await db_change(db_obj, session, self.model)
+        return await self.db_change(db_obj, session)
 
     async def delete(
             self,
@@ -91,7 +90,7 @@ class CrudBase:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=CANNOT_DELETE_INVESTED_PROJECT
             )
-        return await db_change(db_obj, session, self.model, delete=True)
+        return await self.db_change(db_obj, session, delete=True)
 
     @staticmethod
     async def get_available_investments(
@@ -104,3 +103,28 @@ class CrudBase:
             ).order_by(db_model.create_date)
         )
         return available_investments.scalars().all()
+
+    async def db_change(
+            self,
+            obj,
+            session: AsyncSession,
+            delete=False,
+            add_list=None
+    ):
+        try:
+            if delete:
+                await session.delete(obj)
+                await session.commit()
+            else:
+                if add_list:
+                    session.add_all(add_list)
+                else:
+                    session.add(obj)
+                await session.commit()
+                await session.refresh(obj)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=DB_CHANGE_ERROR
+            )
+        return obj
