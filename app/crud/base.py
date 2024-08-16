@@ -104,8 +104,8 @@ class CrudBase:
         )
         return available_investments.scalars().all()
 
+    @staticmethod
     async def db_change(
-            self,
             obj,
             session: AsyncSession,
             delete=False,
