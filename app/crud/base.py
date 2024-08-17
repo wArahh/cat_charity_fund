@@ -50,11 +50,15 @@ class CrudBase:
             obj,
             session: AsyncSession,
             user: Optional[User] = None,
+            commit=True,
+
     ):
         obj_data = obj.dict()
         if user is not None:
             obj_data['user_id'] = user.id
-        return await self.db_change(self.model(**obj_data), session)
+        return await self.db_change(
+            self.model(**obj_data), session, commit=commit
+        )
 
     async def update(
             self,
@@ -109,7 +113,8 @@ class CrudBase:
             obj,
             session: AsyncSession,
             delete=False,
-            add_list=None
+            add_list=None,
+            commit=True,
     ):
         try:
             if delete:
@@ -120,8 +125,9 @@ class CrudBase:
                     session.add_all(add_list)
                 else:
                     session.add(obj)
-                await session.commit()
-                await session.refresh(obj)
+                if commit:
+                    await session.commit()
+                    await session.refresh(obj)
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

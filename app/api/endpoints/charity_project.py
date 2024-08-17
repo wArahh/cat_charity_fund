@@ -36,7 +36,7 @@ async def create_charity_project(
     """ superuser access only """
     await check_name_duplicate(charity_project.name, session)
     target = await charity_project_crud.create(
-        charity_project, session
+        charity_project, session, commit=False
     )
     return await charity_project_crud.db_change(
         target,
