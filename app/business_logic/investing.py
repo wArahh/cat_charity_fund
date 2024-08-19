@@ -1,10 +1,13 @@
 from datetime import datetime
+from typing import List, Union
+
+from app.models import CharityProject, Donation
 
 
 def donation_processing(
-        target,
-        sources,
-):
+        target: Union[CharityProject, Donation],
+        sources: Union[List[Donation], List[CharityProject]],
+) -> List[Union[CharityProject, Donation]]:
     objects_to_add = []
     target.invested_amount = target.invested_amount or 0
     target.full_amount = target.full_amount or 0
